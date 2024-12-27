@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ringkasan Penjualan</title>
+</head>
+
+<body>
+    <h1>{{ message_tersimpan }}</h1>
+    <p><strong>ID Penjualan:</strong> {{ sale_id }}</p>
+    <p><strong>Tanggal Penjualan:</strong> {{ sale_date }}</p>
+    <p><strong>Total Harga:</strong> Rp{{ total_price }}</p>
+    <a>Print Struk</a>
+    <h2>Daftar Pembelian Produk</h2>
+    <table border="1">
+        <tr>
+            <th>Nama Produk</th>
+            <th>Jumlah</th>
+            <th>Harga Satuan</th>
+            <th>Harga</th>
+        </tr>
+        {% for product in sales_products %}
+        <tr>
+            <td>{{ product.product_name }}</td>
+            <td>{{ product.quantity }}</td>
+            <td>Rp{{ product.price }}</td>
+            <td>Rp{{ product.total_price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/create_sale_form/">Kembali ke Form</a>
+    </body>
+</body>
+
+</html>

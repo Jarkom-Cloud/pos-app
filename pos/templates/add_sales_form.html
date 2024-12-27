@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Sales</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        button {
+            margin: 10px 0;
+        }
+    </style>
+    <script>
+        function addProductRow() {
+            const table = document.getElementById("productsTable");
+            const row = table.insertRow(-1);
+
+            row.innerHTML = `
+                <td><input type="text" name="product_name" placeholder="Product Name" required></td>
+                <td><input type="number" name="quantity" placeholder="Quantity" min="1" required></td>
+                <td><input type="number" name="price" placeholder="Price" step="0.01" min="0" required></td>
+                <td><button type="button" onclick="removeProductRow(this)">Remove</button></td>
+            `;
+        }
+
+        function removeProductRow(button) {
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+        async function submitSale(event) {
+            event.preventDefault();
+            const productRows = document.querySelectorAll("#productsTable tr");
+            const salesProducts = Array.from(productRows).map(row => {
+                const inputs = row.querySelectorAll("input");
+                return {
+                    product_name: inputs[0]?.value.trim(),
+                    quantity: parseInt(inputs[1]?.value, 10),
+                    price: parseFloat(inputs[2]?.value)
+                };
+            }).slice(1);
+            console.log(salesProducts.slice(1))
+            if (salesProducts.length === 0 || salesProducts.some(product => !product.product_name || isNaN(product.quantity) || isNaN(product.price))) {
+                alert("Pastikan semua field sudah terisi!");
+                return;
+            }
+            try {
+                const response = await fetch("/api/create_sale/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify({
+                        sales_products: salesProducts
+                    })
+                });
+                const contentType = response.headers.get("Content-Type");
+
+                if (contentType.includes("application/json")) {
+                    const result = await response.json();
+                    if (!response.ok) {
+                        alert(`Error: ${result.message}`);
+                    }
+                    window.location.reload();
+                } else if (contentType.includes("text/html")) {
+                    const result = await response.text();
+                    console.log(result);
+                    alert("Success! Penjualan sudah tersimpan!");
+                    document.body.innerHTML = result;
+                } else {
+                    alert("Error terjadi.");
+                }
+            } catch (error) {
+                alert("Error terjadi.");
+            }
+
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Tambah Penjualan</h1>
+    <form onsubmit="submitSale(event)">
+        <h2>Daftar Produk</h2>
+        <table id="productsTable">
+            <thead>
+                <tr>
+                    <th>Produk</th>
+                    <th>Jumlah</th>
+                    <th>Harga Satuan</th>
+                    <th>Tindakan</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <button type="button" onclick="addProductRow()">Tambah Produk</button><br><br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+</html>
